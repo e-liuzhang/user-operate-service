@@ -1,0 +1,17 @@
+server:
+  port: 8082
+  servlet:
+    context-path: /user-operate-service
+spring:
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: user-operate-service
+  application:
+    name: user-operate-service
+
+
+
+
+
