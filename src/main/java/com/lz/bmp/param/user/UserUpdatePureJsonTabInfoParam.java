@@ -4,10 +4,12 @@ import java.util.Map;
 
 /**
  * @Author shangang_luo
- * @Date 2021/2/1 15:08
+ * @Date 2021/2/3 11:33
  */
 
-public class UserAddPureJsonTabInfoParam {
+public class UserUpdatePureJsonTabInfoParam {
+
+
     /**
      * 接收前端传递的用户基本属性映射值，核实一下这个里面的userCode与原来的userCode是否相同
      */
@@ -19,12 +21,12 @@ public class UserAddPureJsonTabInfoParam {
     private String tabKey;
 
     /**
-     * 用户模板编码
+     * 测站模板编码
      */
     private String userTemplateCode;
 
     /**
-     * 用户编码，必传
+     * 站点编码，必传
      */
     private String userUuid;
 
@@ -62,7 +64,7 @@ public class UserAddPureJsonTabInfoParam {
 
     @Override
     public String toString() {
-        return "UserAddPureJsonTabInfoParam{" +
+        return "UserUpdatePureJsonTabInfoParam{" +
                 "pureJsonTabInfoMap=" + pureJsonTabInfoMap +
                 ", tabKey='" + tabKey + '\'' +
                 ", userTemplateCode='" + userTemplateCode + '\'' +

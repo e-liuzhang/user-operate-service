@@ -3,17 +3,14 @@ package com.lz.bmp.dao.impl;
 import com.fpi.simple.result.BaseResult;
 import com.fpi.simple.result.ListResult;
 import com.lz.bmp.dao.UserDao;
-import com.lz.bmp.dataenum.CommonErrorCode;
-import com.lz.bmp.dataenum.TableName;
-import com.lz.bmp.dataenum.UserField;
-import com.lz.bmp.dataenum.UserStatus;
+import com.lz.bmp.dataenum.*;
+import com.lz.bmp.dataenum.Number;
 import com.lz.bmp.entity.user.User;
 import com.lz.bmp.entity.user.UserCommonInfo;
-import com.lz.bmp.param.user.UserAddForThreePartyParam;
-import com.lz.bmp.param.user.UserAddPureJsonTabInfoParam;
-import com.lz.bmp.param.user.UserDeleteParam;
-import com.lz.bmp.param.user.UserQueryByUuidListParam;
+import com.lz.bmp.entity.userTemplate.UserTemplate;
+import com.lz.bmp.param.user.*;
 import com.lz.bmp.utils.CommonUtils;
+import javafx.scene.control.Tab;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +19,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -110,7 +108,7 @@ public class UserDaoImpl implements UserDao {
                 Map<String, Map<String, String>> basicDataMap = new HashMap<>();
                 basicDataMap.put(UserField.USER_BASIC_TAB.getField(), dataMap);
                 newUser.setUserCommonInfo(userCommonInfo);
-                newUser.setSourceBasicInfoMap(basicDataMap);
+                newUser.setUserBasicInfoMap(basicDataMap);
                 newUser.setUserExtendInfoMap(new HashMap<>());
                 newUser.setDel(false);
                 mongoTemplate.insert(newUser, TableName.USER.getTableName());
@@ -130,6 +128,75 @@ public class UserDaoImpl implements UserDao {
                     addParam.toString(), "Failed to addPureJsonTabInfo", e.toString()));
             baseResult.setError(CommonErrorCode.ADD_ERROR, e.toString());
         }
+        return baseResult;
+    }
+
+    @Override
+    public BaseResult updatePureJsonTabInfo(UserUpdatePureJsonTabInfoParam updateParam, String userUuid, Map<String, String> dataMap) {
+        BaseResult baseResult = new BaseResult();
+
+        String indexUuid = UserField.USER_COMMON_INFO.getField() + CommonUtils.POINT +
+                UserField.USER_UUID.getField();
+        Criteria criteria = Criteria.where(indexUuid).is(userUuid);
+        Query query = new Query();
+        query.addCriteria(criteria);
+        try {
+            Update update = new Update();
+            update.set(UserField.USER_BASIC_INFO_MAP.getField() + CommonUtils.POINT + updateParam.getTabKey(),
+                    dataMap);
+            mongoTemplate.updateFirst(query, update, TableName.USER.getTableName());
+        } catch (Exception e) {
+            logger.error(String.format("updateParam: %s, userUuid: %s, Reason: %s, ExceptionStackTrace: %s",
+                    updateParam.toString(), userUuid, "Failed to updatePureJsonTabInfo", e.toString()));
+            baseResult.setError(CommonErrorCode.UPDATE_ERROR, e.toString());
+        }
+        return baseResult;
+    }
+
+    @Override
+    public BaseResult addExtendTabInfo(UserAddExtendTabInfoParam addParam, User user, UserTemplate userTemplate, Map<String, String> dataMap) {
+        BaseResult baseResult = new BaseResult();
+        Map<String, List<Map<String, String>>> userExtendInfoMap = user.getUserExtendInfoMap();
+
+        Map<String, String> extendInfo = new HashMap<>();
+        extendInfo.put(UserField.DATA_UUID.getField(), addParam.getDataUuid());
+        extendInfo.putAll(dataMap);
+
+        Query query = new Query();
+        Criteria criteria = Criteria.where(UserField.USER_COMMON_INFO.getField() + CommonUtils.POINT +
+                UserField.USER_UUID.getField()).is(addParam.getUserUuid());
+        query.addCriteria(criteria);
+
+        String tabKey = addParam.getTabKey();
+
+        if (StringUtils.isEmpty(tabKey)) {
+            return baseResult.setError(CommonErrorCode.TAB_KEY_NOT_EXIT, tabKey);
+        }
+
+        Update update = new Update();
+
+        try {
+            if (userExtendInfoMap.containsKey(tabKey)) {
+
+                update.addToSet(UserField.USER_EXTEND_INFO_MAP.getField() + CommonUtils.POINT + tabKey,
+                        extendInfo);
+
+                mongoTemplate.upsert(query, update, TableName.USER.getTableName());
+            } else {
+                List<Map<String, String>> extendInfoTab = new ArrayList<>();
+                extendInfoTab.add(extendInfo);
+
+                update.set(UserField.USER_EXTEND_INFO_MAP.getField() + CommonUtils.POINT +
+                        tabKey, extendInfoTab);
+                int res = (int) mongoTemplate.updateFirst(query, update, TableName.USER.getTableName()).getModifiedCount();
+                if (res < Number.ONE.getNumber()) {
+                    return baseResult.setError(CommonErrorCode.UPDATE_ERROR, res);
+                }
+            }
+        } catch (Exception e) {
+            baseResult.setError(CommonErrorCode.UPDATE_ERROR, e.toString());
+        }
+
         return baseResult;
     }
 }

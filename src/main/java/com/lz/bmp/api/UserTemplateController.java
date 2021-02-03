@@ -84,7 +84,7 @@ public class UserTemplateController {
     public Object deleteUserTemplate(@RequestBody UserTemplateDeleteParam deleteParam) {
         BaseResult baseResult = new BaseResult();
         if (null == deleteParam) {
-            return baseResult.setError(CommonErrorCode.PARAM_ERROR, Param.DELETEPARAM.getParam());
+            return baseResult.setError(CommonErrorCode.PARAM_ERROR, Param.DELETE_PARAM.getParam());
         }
         List<String> codeList = deleteParam.getUserTemplateCodeList();
         if (CollectionUtils.isEmpty(codeList)) {

@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.fpi.simple.result.BaseResult;
 import com.fpi.simple.result.PlainResult;
 import com.lz.bmp.dataenum.CommonErrorCode;
+import com.lz.bmp.dataenum.Param;
 import com.lz.bmp.entity.userTemplate.UserTemplate;
 import com.lz.bmp.entity.userTemplate.UserTemplateInfo;
 import com.lz.bmp.entity.userTemplate.UserTemplateTab;
@@ -473,6 +474,89 @@ public class UserTemplateCheckServiceImpl implements UserTemplateCheckService {
             logger.error(String.format("widgetsMap: %s, dataMap: %s, Reason: %s, ExceptionStackTrace: %s",
                     widgetsMap.toString(), dataMap.toString(), "Failed to checkPureJsonInfo", e.toString()));
             baseResult.setError(CommonErrorCode.CHECK_ERROR, e.toString());
+        }
+
+        return baseResult;
+    }
+
+    @Override
+    public PlainResult<List<String>> getTableTabStr(UserTemplate userTemplate, String tabKey) {
+        PlainResult<List<String>> plainResult = new PlainResult<>();
+
+        List<UserTemplateTab> userTemplateTabList = userTemplate.getUserTemplateTabList();
+
+        boolean isTabKeyExist = false;
+        for (UserTemplateTab item : userTemplateTabList) {
+            if (tabKey.equals(item.getTabKey())) {
+                isTabKeyExist = true;
+                break;
+            }
+        }
+
+        if (!isTabKeyExist) {
+            return plainResult.setError(CommonErrorCode.NOT_EXIT, Param.TAB_KEY.getParam(), tabKey);
+        }
+
+        Map<String, UserTemplateInfo> sourceTemplateDataMap = userTemplate.getUserTemplateDataMap();
+
+        if (!sourceTemplateDataMap.containsKey(tabKey)) {
+            return plainResult.setError(CommonErrorCode.NOT_EXIT, Param.TAB_KEY.getParam(), tabKey);
+        }
+
+        List<String> tabKeyLabel = sourceTemplateDataMap.get(tabKey).getTabKeyLabelList();
+        plainResult.setData(tabKeyLabel);
+        return plainResult;
+    }
+
+    @Override
+    public PlainResult<Map<String, String>> getTabKeyLabelMap(List<String> tabKeyLabel) {
+        PlainResult<Map<String, String>> plainResult = new PlainResult<>();
+        Map<String, String> tabKeyLabelMap = new HashMap<>();
+
+        if (CollectionUtils.isEmpty(tabKeyLabel)) {
+            plainResult.setData(tabKeyLabelMap);
+            return plainResult;
+        }
+
+        for (String factorInfo : tabKeyLabel) {
+            String[] tabKey = factorInfo.split(",");
+            tabKeyLabelMap.put(tabKey[0], tabKey[1]);
+        }
+
+        plainResult.setData(tabKeyLabelMap);
+        return plainResult;
+    }
+
+    @Override
+    public BaseResult checkTableTabInfo(Map<String, JSONObject> widgetsMap, Map<String, String> keyLabelMap, Map<String, String> dataMap) {
+        BaseResult baseResult = checkPureJsonInfo(widgetsMap, dataMap);
+        if (!baseResult.isSuccess()) {
+            return baseResult;
+        }
+
+        if (CollectionUtils.isEmpty(keyLabelMap) || CollectionUtils.isEmpty(widgetsMap)) {
+            return baseResult;
+        }
+
+        Set<Map.Entry<String, JSONObject>> widgetsEntrySet = widgetsMap.entrySet();
+        Set<String> keyNameSet = new HashSet<>();
+        try {
+            for (Map.Entry<String, JSONObject> item : widgetsEntrySet) {
+                String keyName = item.getKey().split("_")[1];
+                keyNameSet.add(keyName);
+            }
+
+            Set<Map.Entry<String, String>> keyLabelMapSet = keyLabelMap.entrySet();
+            for (Map.Entry<String, String> item : keyLabelMapSet) {
+                if (!keyNameSet.contains(item.getKey())) {
+                    baseResult.setError(CommonErrorCode.JSON_DATA_IS_ILLEGAL);
+                    return baseResult;
+                }
+            }
+        } catch (Exception e) {
+            logger.error(String.format("widgetsMap: %s, keyLabelMap: %s, dataMap: %s, Reason: %s, ExceptionStackTrace: %s",
+                    widgetsMap.toString(), keyLabelMap.toString(), dataMap.toString(), "Failed to checkPureJsonInfo",
+                    e.toString()));
         }
 
         return baseResult;

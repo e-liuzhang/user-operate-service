@@ -4,10 +4,8 @@ import com.fpi.simple.result.BaseResult;
 import com.fpi.simple.result.ListResult;
 import com.lz.bmp.dao.UserDao;
 import com.lz.bmp.entity.user.User;
-import com.lz.bmp.param.user.UserAddForThreePartyParam;
-import com.lz.bmp.param.user.UserAddPureJsonTabInfoParam;
-import com.lz.bmp.param.user.UserDeleteParam;
-import com.lz.bmp.param.user.UserQueryByUuidListParam;
+import com.lz.bmp.entity.userTemplate.UserTemplate;
+import com.lz.bmp.param.user.*;
 import com.lz.bmp.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -44,5 +42,15 @@ public class UserServiceImpl implements UserService {
     @Override
     public BaseResult addPureJsonTabInfo(UserAddPureJsonTabInfoParam addParam, String userUUID, User user, Map<String, String> dataMap) {
         return userDao.addPureJsonTabInfo(addParam, userUUID, user, dataMap);
+    }
+
+    @Override
+    public BaseResult updatePureJsonTabInfo(UserUpdatePureJsonTabInfoParam updateParam, String userUuid, Map<String, String> dataMap) {
+        return userDao.updatePureJsonTabInfo(updateParam, userUuid, dataMap);
+    }
+
+    @Override
+    public BaseResult addExtendTabInfo(UserAddExtendTabInfoParam addParam, User user, UserTemplate userTemplate, Map<String, String> dataMap) {
+        return userDao.addExtendTabInfo(addParam, user, userTemplate, dataMap);
     }
 }

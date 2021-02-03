@@ -5,6 +5,7 @@ import com.fpi.simple.result.BaseResult;
 import com.fpi.simple.result.PlainResult;
 import com.lz.bmp.entity.userTemplate.UserTemplate;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -48,5 +49,32 @@ public interface UserTemplateCheckService {
      * @return
      */
     BaseResult checkPureJsonInfo(Map<String, JSONObject> widgetsMap, Map<String, String> dataMap);
+
+    /**
+     * 获取模板中表格页面结构数据
+     *
+     * @param userTemplate
+     * @param tabKey
+     * @return
+     */
+    PlainResult<List<String>> getTableTabStr(UserTemplate userTemplate, String tabKey);
+
+    /**
+     * 获取表格结构数据中key到label的映射
+     *
+     * @param tabKeyLabel
+     * @return
+     */
+    PlainResult<Map<String, String>> getTabKeyLabelMap(List<String> tabKeyLabel);
+
+    /**
+     * 校验表格页面数据和结构的正确性
+     *
+     * @param keyLabelMap
+     * @param dataMap
+     * @return
+     */
+    BaseResult checkTableTabInfo(Map<String, JSONObject> widgetsMap, Map<String, String> keyLabelMap, Map<String, String> dataMap);
+
 
 }

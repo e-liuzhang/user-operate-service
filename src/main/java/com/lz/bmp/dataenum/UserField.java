@@ -17,12 +17,18 @@ public enum UserField {
 
     USER_BASIC_INFO_MAP("userBasicInfoMap"),
 
+    USER_EXTEND_INFO_MAP("userExtendInfoMap"),
+
     /**
      * 用户基本属性栏
      */
     USER_BASIC_TAB("userBasicAttrInfo"),
 
-    USER_NAME("username"),
+    USER_NAME("userName"),
+    /**
+     * code标签
+     */
+    DATA_UUID("dataUuid"),
     ;
 
     private final String field;

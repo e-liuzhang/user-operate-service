@@ -30,6 +30,8 @@ public enum CommonErrorCode implements IErrorCode {
 
     ADD_ERROR("添加失败:%s"),
 
+    UPDATE_ERROR("更新失败:%s"),
+
     DELETE_ERROR("删除失败:%s"),
 
     CHECK_ERROR("校验失败:%s"),

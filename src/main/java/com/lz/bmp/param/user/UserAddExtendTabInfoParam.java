@@ -4,17 +4,13 @@ import java.util.Map;
 
 /**
  * @Author shangang_luo
- * @Date 2021/2/1 15:08
+ * @Date 2021/2/3 15:16
  */
 
-public class UserAddPureJsonTabInfoParam {
-    /**
-     * 接收前端传递的用户基本属性映射值，核实一下这个里面的userCode与原来的userCode是否相同
-     */
-    private Map<String, String> pureJsonTabInfoMap;
+public class UserAddExtendTabInfoParam {
 
     /**
-     * 纯Json页面key值
+     * 页面key值
      */
     private String tabKey;
 
@@ -24,17 +20,19 @@ public class UserAddPureJsonTabInfoParam {
     private String userTemplateCode;
 
     /**
-     * 用户编码，必传
+     * 用户编码
      */
     private String userUuid;
 
-    public Map<String, String> getPureJsonTabInfoMap() {
-        return pureJsonTabInfoMap;
-    }
+    /**
+     * 设备跟随站点的信息
+     */
+    private Map<String, String> extendInfoMap;
 
-    public void setPureJsonTabInfoMap(Map<String, String> pureJsonTabInfoMap) {
-        this.pureJsonTabInfoMap = pureJsonTabInfoMap;
-    }
+    /**
+     * 添加信息的唯一标识
+     */
+    private String dataUuid;
 
     public String getTabKey() {
         return tabKey;
@@ -60,13 +58,30 @@ public class UserAddPureJsonTabInfoParam {
         this.userUuid = userUuid;
     }
 
+    public Map<String, String> getExtendInfoMap() {
+        return extendInfoMap;
+    }
+
+    public void setExtendInfoMap(Map<String, String> extendInfoMap) {
+        this.extendInfoMap = extendInfoMap;
+    }
+
+    public String getDataUuid() {
+        return dataUuid;
+    }
+
+    public void setDataUuid(String dataUuid) {
+        this.dataUuid = dataUuid;
+    }
+
     @Override
     public String toString() {
-        return "UserAddPureJsonTabInfoParam{" +
-                "pureJsonTabInfoMap=" + pureJsonTabInfoMap +
-                ", tabKey='" + tabKey + '\'' +
+        return "UserAddExtendTabInfoParam{" +
+                "tabKey='" + tabKey + '\'' +
                 ", userTemplateCode='" + userTemplateCode + '\'' +
                 ", userUuid='" + userUuid + '\'' +
+                ", extendInfoMap=" + extendInfoMap +
+                ", dataUuid='" + dataUuid + '\'' +
                 '}';
     }
 }

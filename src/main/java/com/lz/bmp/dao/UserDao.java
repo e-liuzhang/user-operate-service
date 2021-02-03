@@ -3,10 +3,8 @@ package com.lz.bmp.dao;
 import com.fpi.simple.result.BaseResult;
 import com.fpi.simple.result.ListResult;
 import com.lz.bmp.entity.user.User;
-import com.lz.bmp.param.user.UserAddForThreePartyParam;
-import com.lz.bmp.param.user.UserAddPureJsonTabInfoParam;
-import com.lz.bmp.param.user.UserDeleteParam;
-import com.lz.bmp.param.user.UserQueryByUuidListParam;
+import com.lz.bmp.entity.userTemplate.UserTemplate;
+import com.lz.bmp.param.user.*;
 
 import java.util.Map;
 
@@ -49,6 +47,24 @@ public interface UserDao {
      * @return
      */
     BaseResult addPureJsonTabInfo(UserAddPureJsonTabInfoParam addParam, String userUUID, User user, Map<String, String> dataMap);
+
+    /**
+     * 更新全部的tab信息
+     *
+     * @param updateParam
+     * @param userUuid
+     * @param dataMap
+     * @return
+     */
+    BaseResult updatePureJsonTabInfo(UserUpdatePureJsonTabInfoParam updateParam, String userUuid, Map<String, String> dataMap);
+
+    /**
+     * 存储扩展属性
+     *
+     * @param addParam
+     * @return
+     */
+    BaseResult addExtendTabInfo(UserAddExtendTabInfoParam addParam, User user, UserTemplate userTemplate, Map<String, String> dataMap);
 
 
 }

@@ -21,7 +21,7 @@ public class User  extends BaseEntity {
     /**
      * 用户基本属性
      */
-    private Map<String, Map<String, String>> sourceBasicInfoMap;
+    private Map<String, Map<String, String>> userBasicInfoMap;
 
     /**
      * 用户扩展属性
@@ -40,12 +40,12 @@ public class User  extends BaseEntity {
         this.userCommonInfo = userCommonInfo;
     }
 
-    public Map<String, Map<String, String>> getSourceBasicInfoMap() {
-        return sourceBasicInfoMap;
+    public Map<String, Map<String, String>> getUserBasicInfoMap() {
+        return userBasicInfoMap;
     }
 
-    public void setSourceBasicInfoMap(Map<String, Map<String, String>> sourceBasicInfoMap) {
-        this.sourceBasicInfoMap = sourceBasicInfoMap;
+    public void setUserBasicInfoMap(Map<String, Map<String, String>> userBasicInfoMap) {
+        this.userBasicInfoMap = userBasicInfoMap;
     }
 
     public Map<String, List<Map<String, String>>> getUserExtendInfoMap() {
@@ -68,7 +68,7 @@ public class User  extends BaseEntity {
     public String toString() {
         return "User{" +
                 "userCommonInfo=" + userCommonInfo +
-                ", sourceBasicInfoMap=" + sourceBasicInfoMap +
+                ", userBasicInfoMap=" + userBasicInfoMap +
                 ", userExtendInfoMap=" + userExtendInfoMap +
                 ", isDel=" + isDel +
                 '}';
