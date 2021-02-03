@@ -11,6 +11,8 @@ public enum Param {
 
     ADD_PARAM("addParam"),
 
+    QUERY_PARAM("queryParam"),
+
     UPDATE_PARAM("updateParam"),
 
     CODE_LIST("userTemplateCodeList"),

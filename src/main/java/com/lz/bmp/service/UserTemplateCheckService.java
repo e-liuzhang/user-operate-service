@@ -2,6 +2,7 @@ package com.lz.bmp.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.fpi.simple.result.BaseResult;
+import com.fpi.simple.result.ListResult;
 import com.fpi.simple.result.PlainResult;
 import com.lz.bmp.entity.userTemplate.UserTemplate;
 
@@ -76,5 +77,21 @@ public interface UserTemplateCheckService {
      */
     BaseResult checkTableTabInfo(Map<String, JSONObject> widgetsMap, Map<String, String> keyLabelMap, Map<String, String> dataMap);
 
+    /**
+     * 数据库字段到值的映射，需要转换为前端识别的类型
+     * “siteName”: “超级站”，需要转化为“input_siteName”: “超级站”
+     *
+     * @param extendValue
+     * @param jsonValue
+     * @return
+     */
+    ListResult<Map<String, String>> getPageExtendValue(List<Map<String, String>> extendValue, String jsonValue, String tabKey);
 
+    /**
+     * 在控件中获取从value到Label的的映射
+     *
+     * @param widgetsMap
+     * @return
+     */
+    PlainResult<Map<String, Map<String, String>>> widgetValueToLabelMap(Map<String, JSONObject> widgetsMap);
 }

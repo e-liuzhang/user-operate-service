@@ -2,6 +2,7 @@ package com.lz.bmp.dao.impl;
 
 import com.fpi.simple.result.BaseResult;
 import com.fpi.simple.result.ListResult;
+import com.fpi.simple.result.PlainResult;
 import com.lz.bmp.dao.UserDao;
 import com.lz.bmp.dataenum.*;
 import com.lz.bmp.dataenum.Number;
@@ -10,7 +11,7 @@ import com.lz.bmp.entity.user.UserCommonInfo;
 import com.lz.bmp.entity.userTemplate.UserTemplate;
 import com.lz.bmp.param.user.*;
 import com.lz.bmp.utils.CommonUtils;
-import javafx.scene.control.Tab;
+import com.mongodb.BasicDBObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -198,5 +199,92 @@ public class UserDaoImpl implements UserDao {
         }
 
         return baseResult;
+    }
+
+    @Override
+    public BaseResult updateExtendTabInfo(UserUpdateExtendTabInfoParam updateParam, User user, UserTemplate userTemplate, Map<String, String> dataMap) {
+        BaseResult baseResult = new BaseResult();
+
+        //校验Code是否存在并且获取该uiid在其下的下标
+        Integer entendIndex = null;
+        String tabKey = updateParam.getTabKey();
+
+        //额外信息数组
+        ArrayList<Map<String, String>> entendInfo = (ArrayList<Map<String, String>>) user.getUserExtendInfoMap().get(tabKey);
+        if (null == entendInfo) {
+            return baseResult.setError(CommonErrorCode.NOT_EXIT, Param.TAB_KEY.getParam(), tabKey);
+        }
+
+        for (int i = 0; i < entendInfo.size(); i++) {
+            if (entendInfo.get(i).get(UserField.DATA_UUID.getField()).equals(updateParam.getDataUuid())) {
+                entendIndex = i;
+            }
+        }
+        if (entendIndex == null) {
+            return baseResult.setError(CommonErrorCode.NOT_EXIT, UserField.DATA_UUID.getField(), updateParam.getDataUuid());
+        }
+
+        Query query = new Query();
+        Criteria criteria = Criteria.where(UserField.USER_COMMON_INFO.getField() + CommonUtils.POINT +
+                UserField.USER_UUID.getField()).is(updateParam.getUserUuid());
+        query.addCriteria(criteria);
+
+        //根据数组下标进行更新
+        dataMap.put(UserField.DATA_UUID.getField(), updateParam.getDataUuid());
+        try {
+            Update update = new Update();
+            update.set(UserField.USER_EXTEND_INFO_MAP.getField() + CommonUtils.POINT + tabKey +
+                    CommonUtils.POINT + entendIndex, dataMap);
+            int res = (int) mongoTemplate.updateFirst(query, update, User.class).getModifiedCount();
+
+            if (res < Number.ONE.getNumber()) {
+                return baseResult.setError(CommonErrorCode.UPDATE_ERROR, res);
+            }
+        }catch (Exception e){
+            baseResult.setError(CommonErrorCode.UPDATE_ERROR, e.toString());
+        }
+
+        return baseResult;
+    }
+
+    @Override
+    public BaseResult deleteExtendTabInfo(UserDeleteExtendTabInfoParam deleteParam, User user, UserTemplate userTemplate) {
+        BaseResult baseResult = new BaseResult();
+        //校验Code是否存在并且获取该uiid在其下的下标
+        Integer entendIndex = null;
+
+        String tabKey = deleteParam.getTabKey();
+
+        for (String dataUuid : deleteParam.getDataUuidList()) {
+            Query query = new Query();
+            Criteria criteria = Criteria.where(UserField.USER_COMMON_INFO.getField() + CommonUtils.POINT + UserField.USER_UUID.getField()).is(deleteParam.getUserUuid());
+
+            query.addCriteria(criteria);
+
+            try {
+                Update update = new Update();
+                BasicDBObject basicDb = new BasicDBObject();
+                basicDb.put(UserField.DATA_UUID.getField(), dataUuid);
+
+                update.pull(UserField.USER_EXTEND_INFO_MAP.getField() + CommonUtils.POINT + tabKey, basicDb);
+
+                int res = (int) mongoTemplate.updateFirst(query, update, User.class).getModifiedCount();
+
+                if (res < Number.ONE.getNumber()) {
+                    //这里继续执行其他user数据
+                    baseResult.setError(CommonErrorCode.DELETE_ERROR, res);
+                }
+            }catch (Exception e){
+                return baseResult.setError(CommonErrorCode.UPDATE_ERROR, e.toString());
+            }
+
+        }
+
+        return baseResult;
+    }
+
+    @Override
+    public ListResult<Map<String, String>> getExtendInfoList(UserQueryExtendInfoParam queryParam, User user, UserTemplate userTemplate) {
+
     }
 }

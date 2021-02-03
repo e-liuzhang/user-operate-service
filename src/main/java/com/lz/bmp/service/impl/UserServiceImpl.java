@@ -53,4 +53,19 @@ public class UserServiceImpl implements UserService {
     public BaseResult addExtendTabInfo(UserAddExtendTabInfoParam addParam, User user, UserTemplate userTemplate, Map<String, String> dataMap) {
         return userDao.addExtendTabInfo(addParam, user, userTemplate, dataMap);
     }
+
+    @Override
+    public BaseResult updateExtendTabInfo(UserUpdateExtendTabInfoParam updateParam, User user, UserTemplate userTemplate, Map<String, String> dataMap) {
+        return userDao.updateExtendTabInfo(updateParam, user, userTemplate, dataMap);
+    }
+
+    @Override
+    public BaseResult deleteExtendTabInfo(UserDeleteExtendTabInfoParam deleteParam, User user, UserTemplate userTemplate) {
+        return userDao.deleteExtendTabInfo(deleteParam, user, userTemplate);
+    }
+
+    @Override
+    public ListResult<Map<String, String>> getExtendInfoList(UserQueryExtendInfoParam queryParam, User user, UserTemplate userTemplate) {
+        return userDao.getExtendInfoList(queryParam, user, userTemplate);
+    }
 }

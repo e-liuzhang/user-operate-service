@@ -66,5 +66,34 @@ public interface UserDao {
      */
     BaseResult addExtendTabInfo(UserAddExtendTabInfoParam addParam, User user, UserTemplate userTemplate, Map<String, String> dataMap);
 
+    /**
+     * 更新扩展属性
+     *
+     * @param updateParam
+     * @param user
+     * @param userTemplate
+     * @param dataMap
+     * @return
+     */
+    BaseResult updateExtendTabInfo(UserUpdateExtendTabInfoParam updateParam, User user, UserTemplate userTemplate, Map<String, String> dataMap);
+
+    /**
+     * 删除扩展属性
+     *
+     * @param deleteParam
+     * @param user
+     * @param userTemplate
+     * @return
+     */
+    BaseResult deleteExtendTabInfo(UserDeleteExtendTabInfoParam deleteParam, User user, UserTemplate userTemplate);
+
+    /**
+     * 查询扩展属性信息
+     *
+     * @param queryParam
+     * @return
+     */
+    ListResult<Map<String, String>> getExtendInfoList(UserQueryExtendInfoParam queryParam, User user, UserTemplate userTemplate);
+
 
 }

@@ -491,11 +491,316 @@ public class UserController {
         return userService.addExtendTabInfo(addParam, user, userTemplate, dataMap);
     }
 
+    /**
+     * 更新扩展属性
+     *
+     * @param updateParam
+     * @return
+     */
+    @PostMapping("updateExtendTabInfo")
+    public Object updateExtendTabInfo(@RequestBody UserUpdateExtendTabInfoParam updateParam) {
+        BaseResult baseResult = new BaseResult();
+
+        if (updateParam == null) {
+            return baseResult.setError(CommonErrorCode.PARAM_ERROR, Param.UPDATE_PARAM.getParam());
+        }
+
+        if (StringUtils.isEmpty(updateParam.getTabKey())) {
+            return baseResult.setError(CommonErrorCode.PARAM_ERROR, Param.TAB_KEY.getParam());
+        }
+        if (StringUtils.isEmpty(updateParam.getUserTemplateCode())) {
+            return baseResult.setError(CommonErrorCode.PARAM_ERROR, UserField.USER_TEMPLATE_CODE.getField());
+        }
+        if (StringUtils.isEmpty(updateParam.getUserUuid())) {
+            return baseResult.setError(CommonErrorCode.PARAM_ERROR, UserField.USER_UUID.getField());
+        }
+        if (StringUtils.isEmpty(updateParam.getDataUuid())) {
+            return baseResult.setError(CommonErrorCode.PARAM_ERROR, UserField.DATA_UUID.getField());
+        }
+
+        //校验额外信息
+        PlainResult<Map<String, String>> dataPlainResult = userTemplateCheckService.getKeyValueInfo(updateParam.getExtendInfoMap());
+        if (!dataPlainResult.isSuccess()) {
+            return baseResult.setError(dataPlainResult.getCode(), dataPlainResult.getMessage());
+        }
+
+        Map<String, String> dataMap = dataPlainResult.getData();
+
+//        校验userUUid(用户是否存在)
+        UserQueryByUuidListParam queryParam = new UserQueryByUuidListParam();
+        List<String> sourceUuidList = new ArrayList<>();
+        sourceUuidList.add(updateParam.getUserUuid());
+        queryParam.setUserUuidList(sourceUuidList);
+        ListResult<User> listResult = userService.findUserByUuidList(queryParam);
+
+        if (!listResult.isSuccess()) {
+            return baseResult.setError(listResult.getCode(), listResult.getMessage());
+        }
+
+        List<User> userList = listResult.getData();
+        if (userList.size() > Number.ONE.getNumber()) {
+            return baseResult.setError(CommonErrorCode.HAS_EXIT, UserField.USER_UUID.getField(), updateParam.getUserUuid());
+        }
+        if (userList.size() < Number.ONE.getNumber()) {
+            return baseResult.setError(CommonErrorCode.NOT_EXIT, UserField.USER_UUID.getField(), updateParam.getUserUuid());
+        }
+        User user = userList.get(Number.ZERO.getNumber());
+
+        //校验传参的sourceTemplateCode是否存在且唯一
+        UserTemplateQueryByCodeParam queryTemplateParam = new UserTemplateQueryByCodeParam();
+        List<String> userTemplateCodeList = new ArrayList<>();
+        userTemplateCodeList.add(updateParam.getUserTemplateCode());
+        queryTemplateParam.setUserTemplateCodeList(userTemplateCodeList);
+        ListResult<UserTemplate> userTemplateListResult = userTemplateService.findUserTemplate(queryTemplateParam);
+
+        if (!userTemplateListResult.isSuccess()) {
+            return baseResult.setError(userTemplateListResult.getCode(), userTemplateListResult.getMessage());
+        }
+
+        List<UserTemplate> userTemplateList = userTemplateListResult.getData();
+        if (CollectionUtils.isEmpty(userTemplateList)) {
+            return baseResult.setError(CommonErrorCode.NOT_EXIT, UserTemplateField.USER_TEMPLATE_CODE.getField(), updateParam.getUserTemplateCode());
+        }
+
+        if (userTemplateList.size() > Number.ONE.getNumber()) {
+            return baseResult.setError(CommonErrorCode.HAS_EXIT, UserTemplateField.USER_TEMPLATE_CODE.getField(), updateParam.getUserTemplateCode());
+        }
+
+        UserTemplate userTemplate = userTemplateList.get(Number.ZERO.getNumber());
+
+        PlainResult<List<String>> tabPlainResult = userTemplateCheckService.getTableTabStr(userTemplate, updateParam.getTabKey());
+
+        if (!tabPlainResult.isSuccess()) {
+            return baseResult.setError(tabPlainResult.getCode(), tabPlainResult.getMessage());
+        }
+
+        List<String> keyLabelList = tabPlainResult.getData();
+
+        PlainResult<Map<String, String>> keyLabelMapPlainResult = userTemplateCheckService.getTabKeyLabelMap(keyLabelList);
+
+        if (!keyLabelMapPlainResult.isSuccess()) {
+            return baseResult.setError(keyLabelMapPlainResult.getCode(), keyLabelMapPlainResult.getMessage());
+        }
+
+        Map<String, String> keyLabelMap = keyLabelMapPlainResult.getData();
+
+        //校验模板里的信息
+        PlainResult<String> jsonPlainResult = userTemplateCheckService.getPureJsonTabStr(userTemplate, updateParam.getTabKey());
+
+        if (!jsonPlainResult.isSuccess()) {
+            baseResult.setError(jsonPlainResult.getCode(), jsonPlainResult.getMessage());
+        }
+
+        String jsonValue = jsonPlainResult.getData();
+
+        Map<String, JSONObject> widgetsMap = new HashMap<>();
+
+        try {
+            widgetsMap = userTemplateCheckService.getWidgetsMap(jsonValue);
+        } catch (Exception e) {
+            return baseResult.setError(CommonErrorCode.JSON_DATA_ERROR, e.toString());
+        }
+
+        if (!CollectionUtils.isEmpty(widgetsMap)) {
+            baseResult = userTemplateCheckService.checkTableTabInfo(widgetsMap, keyLabelMap, dataMap);
+
+            if (!baseResult.isSuccess()) {
+                return baseResult;
+            }
+        }
+        return userService.updateExtendTabInfo(updateParam, user, userTemplate, dataMap);
+    }
+
+    /**
+     * 删除扩展属性
+     *
+     * @param deleteParam
+     * @return
+     */
+    @PostMapping("deleteExtendTabInfo")
+    public Object deleteExtendTabInfo(@RequestBody UserDeleteExtendTabInfoParam deleteParam) {
+        BaseResult baseResult = new BaseResult();
+        if (null == deleteParam) {
+            return baseResult.setError(CommonErrorCode.PARAM_ERROR, Param.DELETE_PARAM.getParam());
+        }
+
+        if (StringUtils.isEmpty(deleteParam.getTabKey())) {
+            return baseResult.setError(CommonErrorCode.PARAM_ERROR, Param.TAB_KEY.getParam());
+        }
+        if (StringUtils.isEmpty(deleteParam.getUserTemplateCode())) {
+            return baseResult.setError(CommonErrorCode.PARAM_ERROR, UserField.USER_TEMPLATE_CODE.getField());
+        }
+        if (StringUtils.isEmpty(deleteParam.getUserUuid())) {
+            return baseResult.setError(CommonErrorCode.PARAM_ERROR, UserField.USER_UUID.getField());
+        }
+        if (CollectionUtils.isEmpty(deleteParam.getDataUuidList())) {
+            return baseResult.setError(CommonErrorCode.PARAM_ERROR, UserField.DATA_UUID.getField());
+        }
+
+//        校验userUUid(用户是否存在)
+        UserQueryByUuidListParam queryParam = new UserQueryByUuidListParam();
+        List<String> userUuidList = new ArrayList<>();
+        userUuidList.add(deleteParam.getUserUuid());
+        queryParam.setUserUuidList(userUuidList);
+        ListResult<User> listResult = userService.findUserByUuidList(queryParam);
+
+        if (!listResult.isSuccess()) {
+            return baseResult.setError(listResult.getCode(), listResult.getMessage());
+        }
+
+        List<User> userList = listResult.getData();
+        if (userList.size() > Number.ONE.getNumber()) {
+            return baseResult.setError(CommonErrorCode.HAS_EXIT, UserField.USER_UUID.getField(), deleteParam.getUserUuid());
+        }
+        if (userList.size() < Number.ONE.getNumber()) {
+            return baseResult.setError(CommonErrorCode.NOT_EXIT, UserField.USER_UUID.getField(), deleteParam.getUserUuid());
+        }
+        User user = userList.get(Number.ZERO.getNumber());
+
+        //校验传参的sourceTemplateCode是否存在且唯一
+        UserTemplateQueryByCodeParam queryTemplateParam = new UserTemplateQueryByCodeParam();
+        List<String> userTemplateCodeList = new ArrayList<>();
+        userTemplateCodeList.add(deleteParam.getUserTemplateCode());
+        queryTemplateParam.setUserTemplateCodeList(userTemplateCodeList);
+        ListResult<UserTemplate> userTemplateListResult = userTemplateService.findUserTemplate(queryTemplateParam);
+
+        if (!userTemplateListResult.isSuccess()) {
+            return baseResult.setError(userTemplateListResult.getCode(), userTemplateListResult.getMessage());
+        }
+
+        List<UserTemplate> userTemplateList = userTemplateListResult.getData();
+        if (CollectionUtils.isEmpty(userTemplateList)) {
+            return baseResult.setError(CommonErrorCode.NOT_EXIT, UserTemplateField.USER_TEMPLATE_CODE.getField(), deleteParam.getUserTemplateCode());
+        }
+
+        if (userTemplateList.size() > Number.ONE.getNumber()) {
+            return baseResult.setError(CommonErrorCode.HAS_EXIT, UserTemplateField.USER_TEMPLATE_CODE.getField(), deleteParam.getUserTemplateCode());
+        }
+
+        UserTemplate userTemplate = userTemplateList.get(Number.ZERO.getNumber());
+
+        return userService.deleteExtendTabInfo(deleteParam, user, userTemplate);
+    }
+
+    /**
+     * 查询扩展属性信息
+     *
+     * @param queryParam
+     * @return
+     */
+    @PostMapping("getExtendInfoList")
+    public Object getExtendInfoList(@RequestBody UserQueryExtendInfoParam queryParam) {
+        ListResult<Map<String, String>> listResult = new ListResult<>();
+
+        if (null == queryParam) {
+            return listResult.setError(CommonErrorCode.PARAM_ERROR, Param.QUERY_PARAM.getParam());
+        }
+
+        if (StringUtils.isEmpty(queryParam.getUserTemplateCode())) {
+            return listResult.setError(CommonErrorCode.PARAM_ERROR, UserField.USER_TEMPLATE_CODE.getField());
+        }
+        if (StringUtils.isEmpty(queryParam.getUserUuid())) {
+            return listResult.setError(CommonErrorCode.PARAM_ERROR, UserField.USER_UUID.getField());
+        }
+        if (StringUtils.isEmpty(queryParam.getTabKey())) {
+            return listResult.setError(CommonErrorCode.PARAM_ERROR, Param.TAB_KEY.getParam());
+        }
+
+//        校验userUUid(用户是否存在)
+        UserQueryByUuidListParam queryUserParam = new UserQueryByUuidListParam();
+        List<String> userUuidList = new ArrayList<>();
+        userUuidList.add(queryParam.getUserUuid());
+        queryUserParam.setUserUuidList(userUuidList);
+        ListResult<User> UserListResult = userService.findUserByUuidList(queryUserParam);
+
+        if (!UserListResult.isSuccess()) {
+            return listResult.setError(UserListResult.getCode(), UserListResult.getMessage());
+        }
+
+        List<User> userList = UserListResult.getData();
+        if (userList.size() > Number.ONE.getNumber()) {
+            return listResult.setError(CommonErrorCode.HAS_EXIT, UserField.USER_UUID.getField(), queryParam.getUserUuid());
+        }
+        if (userList.size() < Number.ONE.getNumber()) {
+            return listResult.setError(CommonErrorCode.NOT_EXIT, UserField.USER_UUID.getField(), queryParam.getUserUuid());
+        }
+        User user = userList.get(Number.ZERO.getNumber());
+
+        //校验传参的sourceTemplateCode是否存在且唯一
+        UserTemplateQueryByCodeParam queryTemplateParam = new UserTemplateQueryByCodeParam();
+        List<String> userTemplateCodeList = new ArrayList<>();
+        userTemplateCodeList.add(queryParam.getUserTemplateCode());
+        queryTemplateParam.setUserTemplateCodeList(userTemplateCodeList);
+        ListResult<UserTemplate> userTemplateListResult = userTemplateService.findUserTemplate(queryTemplateParam);
+
+        if (!userTemplateListResult.isSuccess()) {
+            return listResult.setError(userTemplateListResult.getCode(), userTemplateListResult.getMessage());
+        }
+
+        List<UserTemplate> userTemplateList = userTemplateListResult.getData();
+        if (CollectionUtils.isEmpty(userTemplateList)) {
+            return listResult.setError(CommonErrorCode.NOT_EXIT, UserTemplateField.USER_TEMPLATE_CODE.getField(), queryParam.getUserTemplateCode());
+        }
+
+        if (userTemplateList.size() > Number.ONE.getNumber()) {
+            return listResult.setError(CommonErrorCode.HAS_EXIT, UserTemplateField.USER_TEMPLATE_CODE.getField(), queryParam.getUserTemplateCode());
+        }
+
+        UserTemplate userTemplate = userTemplateList.get(Number.ZERO.getNumber());
+        //不需再次去dao层操作
+        return getExtendInfoList(queryParam, user, userTemplate);
+    }
+
+
     @PostMapping("queryAll")
     public Object queryAllSiteCodeToItem() {
         PlainResult<Map<String, UserApiVo>> plainResult = new PlainResult<>();
 
 
         return plainResult;
+    }
+
+    public ListResult<Map<String, String>> getExtendInfoList(UserQueryExtendInfoParam queryParam, User user, UserTemplate userTemplate) {
+        ListResult<Map<String, String>> listResult = new ListResult<>();
+        Map<String, List<Map<String, String>>> userExtendInfoMap = user.getUserExtendInfoMap();
+
+        if (!userExtendInfoMap.containsKey(queryParam.getTabKey())) {
+            return listResult;
+        }
+
+        List<Map<String, String>> extendKeyList = userExtendInfoMap.get(queryParam.getTabKey());
+
+        String tabKey = queryParam.getTabKey();
+
+        PlainResult<String> jsonPlainResult = userTemplateCheckService.getPureJsonTabStr(userTemplate, tabKey);
+        if (!jsonPlainResult.isSuccess()) {
+            listResult.setCode(jsonPlainResult.getCode());
+            listResult.setMessage(jsonPlainResult.getMessage());
+            listResult.setSuccess(false);
+            return listResult;
+        }
+
+        String jsonValue = jsonPlainResult.getData();
+
+        ListResult<Map<String, String>> pageListResult = userTemplateCheckService.getPageExtendValue(extendKeyList,
+                jsonValue, queryParam.getTabKey());
+        if (!pageListResult.isSuccess()) {
+            listResult.setCode(pageListResult.getCode());
+            listResult.setMessage(pageListResult.getMessage());
+            listResult.setSuccess(false);
+            return listResult;
+        }
+
+        List<Map<String, String>> resultList = new ArrayList<>();
+        for (int i = 0; i < extendKeyList.size(); i++) {
+            Map<String, String> temp = new HashMap<>(16);
+            temp.putAll(extendKeyList.get(i));
+            temp.putAll(pageListResult.getData().get(i));
+            resultList.add(temp);
+        }
+        listResult.setCount(resultList.size());
+        listResult.setData(resultList);
+
+        return listResult;
     }
 }
