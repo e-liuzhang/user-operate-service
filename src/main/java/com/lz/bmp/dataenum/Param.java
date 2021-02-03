@@ -9,7 +9,11 @@ public enum Param {
 
     DELETEPARAM("deleteParam"),
 
+    ADDPARAM("addParam"),
+
     CODE_LIST("userTemplateCodeList"),
+
+    TAB_KEY("tabkey")
     ;
 
     private final String param;

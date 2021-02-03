@@ -1,12 +1,33 @@
 package com.lz.bmp.api;
 
+import com.alibaba.fastjson.JSONObject;
+import com.fpi.simple.result.BaseResult;
+import com.fpi.simple.result.ListResult;
 import com.fpi.simple.result.PlainResult;
+import com.lz.bmp.dataenum.*;
+import com.lz.bmp.dataenum.Number;
+import com.lz.bmp.entity.user.User;
+import com.lz.bmp.entity.user.UserCommonInfo;
+import com.lz.bmp.entity.userTemplate.UserTemplate;
+import com.lz.bmp.param.user.UserAddForThreePartyParam;
+import com.lz.bmp.param.user.UserAddPureJsonTabInfoParam;
+import com.lz.bmp.param.user.UserDeleteParam;
+import com.lz.bmp.param.user.UserQueryByUuidListParam;
+import com.lz.bmp.param.userTemplate.UserTemplateQueryByCodeParam;
+import com.lz.bmp.service.UserService;
+import com.lz.bmp.service.UserTemplateCheckService;
+import com.lz.bmp.service.UserTemplateService;
+import com.lz.bmp.utils.CommonUtils;
 import com.lz.bmp.vo.UserApiVo;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Map;
+import java.util.*;
 
 /**
  * @Author shangang_luo
@@ -16,6 +37,235 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/user")
 public class UserController {
+
+    @Autowired
+    private UserTemplateService userTemplateService;
+
+    @Autowired
+    private UserService userService;
+
+
+    @Autowired
+    private UserTemplateCheckService userTemplateCheckService;
+
+
+    @PostMapping("addUser")
+    public Object addUser(@RequestBody UserAddForThreePartyParam addParam) {
+        BaseResult baseResult = new BaseResult();
+        UserCommonInfo userCommonInfo = addParam.getUserCommonInfo();
+        if (null == userCommonInfo) {
+            return baseResult.setError(CommonErrorCode.PARAM_ERROR, UserField.USER_COMMON_INFO.getField());
+        }
+        String userTemplateCode = userCommonInfo.getUserTemplateCode();
+        if (StringUtils.isEmpty(userTemplateCode)) {
+            return baseResult.setError(CommonErrorCode.PARAM_ERROR, UserField.USER_TEMPLATE_CODE.getField());
+        }
+
+        //校验模板的存在
+        UserTemplateQueryByCodeParam queryParam = new UserTemplateQueryByCodeParam();
+        List<String> userTemplateCodeList = new ArrayList<>();
+        userTemplateCodeList.add(addParam.getUserCommonInfo().getUserTemplateCode());
+        queryParam.setUserTemplateCodeList(userTemplateCodeList);
+        ListResult<UserTemplate> userTemplateListResult = userTemplateService.findUserTemplate(queryParam);
+
+        if (!userTemplateListResult.isSuccess()) {
+            return baseResult.setError(userTemplateListResult.getCode(), userTemplateListResult.getMessage());
+        }
+        List<UserTemplate> userTemplateList = userTemplateListResult.getData();
+        if (CollectionUtils.isEmpty(userTemplateList)) {
+            return baseResult.setError(CommonErrorCode.NOT_EXIT, UserTemplateField.USER_TEMPLATE_CODE.getField(), userTemplateCode);
+        }
+
+        //校验添加的基本属性与模板规定的是否一致
+        Map<String, Map<String, String>> userBasicInfoMap = addParam.getUserBasicInfoMap();
+        if (null != userBasicInfoMap) {
+            for (Map.Entry<String, Map<String, String>> userBasicInfoMapEntry : userBasicInfoMap.entrySet()) {
+                String key = userBasicInfoMapEntry.getKey();
+                Map<String, String> basicAttr = userBasicInfoMapEntry.getValue();
+                if (StringUtils.isEmpty(key)) {
+                    return baseResult.setError(CommonErrorCode.PARAM_ERROR, key);
+                }
+                String basicAttrEntryKey;
+                String basicAttrEntryValue;
+                for (Map.Entry<String, String> basicAttrEntry : basicAttr.entrySet()) {
+                    basicAttrEntryKey = basicAttrEntry.getKey();
+                    basicAttrEntryValue = basicAttrEntry.getValue();
+                    if (StringUtils.isEmpty(basicAttrEntryKey) || StringUtils.isEmpty(basicAttrEntryValue)) {
+                        return baseResult.setError(CommonErrorCode.PARAM_ERROR, basicAttrEntryKey + basicAttrEntryValue);
+                    }
+                }
+            }
+        }
+
+        //校验添加的额外属性与模板规定的是否一致
+        Map<String, List<Map<String, String>>> userExtendInfoMap = addParam.getUserExtendInfoMap();
+        if (null != userExtendInfoMap) {
+            for (Map.Entry<String, List<Map<String, String>>> extendEntry : userExtendInfoMap.entrySet()) {
+                String key = extendEntry.getKey();
+                List<Map<String, String>> subValueList = extendEntry.getValue();
+                if (StringUtils.isEmpty(key)) {
+                    return baseResult.setError(CommonErrorCode.PARAM_ERROR, key);
+                }
+                for (Map<String, String> map : subValueList) {
+                    for (Map.Entry<String, String> subEntry : map.entrySet()) {
+                        String subKey = subEntry.getKey();
+                        String subValue = subEntry.getValue();
+                        if (StringUtils.isEmpty(subKey) || StringUtils.isEmpty(subValue)) {
+                            return baseResult.setError(CommonErrorCode.PARAM_ERROR, subKey + subValue);
+                        }
+                    }
+                }
+            }
+
+        }
+
+        //添加额外的基本信息
+        addParam.getUserCommonInfo().setUserUuid(CommonUtils.getUuid());
+        addParam.setDel(Boolean.FALSE);
+        addParam.setCreateTime(new Date());
+        addParam.setModifyTime(new Date());
+
+        return userService.addUser(addParam);
+    }
+
+    @PostMapping("deleteUser")
+    public Object deleteUser(@RequestBody UserDeleteParam deleteParam) {
+        BaseResult baseResult = new BaseResult();
+        if (null == deleteParam) {
+            return baseResult.setError(CommonErrorCode.PARAM_ERROR, Param.DELETEPARAM.getParam());
+        }
+        List<String> userUuidList = deleteParam.getUserUuidList();
+        for (String userUuid : userUuidList) {
+            if (StringUtils.isEmpty(userUuid)) {
+                return baseResult.setError(CommonErrorCode.PARAM_ERROR, UserField.USER_UUID.getField());
+            }
+        }
+        return userService.deleteUser(deleteParam);
+    }
+
+
+    /**
+     * 对于纯Json渲染的页面，保存走该接口
+     *
+     * @param addParam
+     * @return
+     */
+    @PostMapping("addPureJsonTabInfo")
+    public Object addPureJsonTabInfo(@RequestBody UserAddPureJsonTabInfoParam addParam) {
+        PlainResult<String> plainResult = new PlainResult<>();
+
+        if (addParam == null) {
+            return plainResult.setError(CommonErrorCode.PARAM_ERROR, Param.ADDPARAM.getParam());
+        }
+
+        if (StringUtils.isEmpty(addParam.getTabKey())) {
+            return plainResult.setError(CommonErrorCode.PARAM_ERROR, Param.TAB_KEY.getParam());
+        }
+
+        if (StringUtils.isEmpty(StringUtils.isEmpty(addParam.getUserTemplateCode()))) {
+            return plainResult.setError(CommonErrorCode.PARAM_ERROR, UserField.USER_TEMPLATE_CODE.getField());
+        }
+
+        //格式校验
+        PlainResult<Map<String, String>> dataPlainResult = userTemplateCheckService.getKeyValueInfo(addParam.getPureJsonTabInfoMap());
+        if (!dataPlainResult.isSuccess()) {
+            return plainResult.setError(dataPlainResult.getCode(), dataPlainResult.getMessage());
+        }
+
+        Map<String, String> dataMap = dataPlainResult.getData();
+
+        //如果是basic则添加一个用户，不是则是扩展
+        String userUUID;
+        User user = null;
+        if (addParam.getTabKey().equals(UserField.USER_BASIC_TAB.getField())) {
+            if (!dataMap.containsKey(UserField.USER_NAME.getField()) ||
+                    StringUtils.isEmpty(dataMap.get(UserField.USER_NAME.getField()))) {
+                return plainResult.setError(CommonErrorCode.PARAM_ERROR, UserField.USER_NAME.getField());
+            }
+            userUUID = CommonUtils.getUuid();
+        } else {
+            userUUID = addParam.getUserUuid();
+
+            UserQueryByUuidListParam queryParam = new UserQueryByUuidListParam();
+            List<String> userUuidList = new ArrayList<>();
+            userUuidList.add(userUUID);
+            queryParam.setUserUuidList(userUuidList);
+            ListResult<User> listResult = userService.findUserByUuidList(queryParam);
+
+            if (!listResult.isSuccess()) {
+                return plainResult.setError(listResult.getCode(), listResult.getMessage());
+            }
+            List<User> sourceList = listResult.getData();
+            if (sourceList.size() > Number.ONE.getNumber()) {
+                return plainResult.setError(CommonErrorCode.HAS_EXIT, UserField.USER_UUID.getField(), sourceList.size());
+            }
+            if (sourceList.size() < Number.ONE.getNumber()) {
+                return plainResult.setError(CommonErrorCode.NOT_EXIT, UserField.USER_UUID.getField(), userUUID);
+            }
+            user = sourceList.get(Number.ZERO.getNumber());
+        }
+
+        //校验用户模板是否存在
+        UserTemplateQueryByCodeParam queryParam = new UserTemplateQueryByCodeParam();
+        List<String> userTemplateCodeList = new ArrayList<>();
+        userTemplateCodeList.add(addParam.getUserTemplateCode());
+        queryParam.setUserTemplateCodeList(userTemplateCodeList);
+        ListResult<UserTemplate> userTemplateListResult = userTemplateService.findUserTemplate(queryParam);
+
+        if (!userTemplateListResult.isSuccess()) {
+            return plainResult.setError(userTemplateListResult.getCode(), userTemplateListResult.getMessage());
+        }
+
+        List<UserTemplate> userTemplateList = userTemplateListResult.getData();
+        if (CollectionUtils.isEmpty(userTemplateList)) {
+            return plainResult.setError(CommonErrorCode.NOT_EXIT, UserField.USER_TEMPLATE_CODE.getField(), addParam.getUserTemplateCode());
+        }
+
+        if (userTemplateList.size() > Number.ONE.getNumber()) {
+            return plainResult.setError(CommonErrorCode.HAS_EXIT, addParam.getUserTemplateCode(), userTemplateList.size());
+        }
+
+        UserTemplate userTemplate = userTemplateList.get(Number.ZERO.getNumber());
+
+        //获取jsonValue
+        PlainResult<String> checkPlainResult = userTemplateCheckService.getPureJsonTabStr(userTemplate, addParam.getTabKey());
+
+        if (!checkPlainResult.isSuccess()) {
+            return plainResult.setError(checkPlainResult.getCode(),checkPlainResult.getMessage());
+        }
+
+        String jsonValue = checkPlainResult.getData();
+
+        Map<String, JSONObject> widgetsMap;
+        //获取相对应的字段映射
+        try {
+            widgetsMap = userTemplateCheckService.getWidgetsMap(jsonValue);
+        } catch (Exception e) {
+            return plainResult.setError(CommonErrorCode.JSON_DATA_ERROR, e.toString());
+        }
+
+        if (CollectionUtils.isEmpty(widgetsMap)) {
+            return plainResult.setError(CommonErrorCode.JSON_DATA_IS_ILLEGAL);
+        }
+
+        BaseResult baseResult = userTemplateCheckService.checkPureJsonInfo(widgetsMap, dataMap);
+
+        if (!baseResult.isSuccess()) {
+            plainResult.setCode(baseResult.getCode());
+            plainResult.setMessage(baseResult.getMessage());
+            plainResult.setSuccess(false);
+            return plainResult;
+        }
+
+        baseResult = userService.addPureJsonTabInfo(addParam, userUUID, user, dataMap);
+        if (!baseResult.isSuccess()) {
+            return plainResult.setError(baseResult.getCode(),baseResult.getMessage());
+        }
+
+        plainResult.setData(userUUID);
+
+        return plainResult;
+    }
 
 
     @PostMapping("queryAll")

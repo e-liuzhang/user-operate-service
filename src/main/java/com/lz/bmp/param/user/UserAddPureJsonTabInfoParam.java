@@ -1,0 +1,74 @@
+package com.lz.bmp.param.user;
+
+import java.util.Map;
+
+/**
+ * @Author shangang_luo
+ * @Date 2021/2/1 15:08
+ */
+
+public class UserAddPureJsonTabInfoParam {
+    /**
+     * 接收前端传递的用户基本属性映射值，核实一下这个里面的userCode与原来的userCode是否相同
+     * 改basic页面，就会有userCode
+     * 不是basic页面，没有userCode
+     */
+    private Map<String, String> pureJsonTabInfoMap;
+
+    /**
+     * 纯Json页面key值
+     */
+    private String tabKey;
+
+    /**
+     * 用户模板编码
+     */
+    private String userTemplateCode;
+
+    /**
+     * 用户编码，必传
+     */
+    private String userUuid;
+
+    public Map<String, String> getPureJsonTabInfoMap() {
+        return pureJsonTabInfoMap;
+    }
+
+    public void setPureJsonTabInfoMap(Map<String, String> pureJsonTabInfoMap) {
+        this.pureJsonTabInfoMap = pureJsonTabInfoMap;
+    }
+
+    public String getTabKey() {
+        return tabKey;
+    }
+
+    public void setTabKey(String tabKey) {
+        this.tabKey = tabKey;
+    }
+
+    public String getUserTemplateCode() {
+        return userTemplateCode;
+    }
+
+    public void setUserTemplateCode(String userTemplateCode) {
+        this.userTemplateCode = userTemplateCode;
+    }
+
+    public String getUserUuid() {
+        return userUuid;
+    }
+
+    public void setUserUuid(String userUuid) {
+        this.userUuid = userUuid;
+    }
+
+    @Override
+    public String toString() {
+        return "UserAddPureJsonTabInfoParam{" +
+                "pureJsonTabInfoMap=" + pureJsonTabInfoMap +
+                ", tabKey='" + tabKey + '\'' +
+                ", userTemplateCode='" + userTemplateCode + '\'' +
+                ", userUuid='" + userUuid + '\'' +
+                '}';
+    }
+}
