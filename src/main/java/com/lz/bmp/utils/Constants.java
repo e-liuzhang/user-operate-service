@@ -3,7 +3,7 @@ package com.lz.bmp.utils;
 /**
  * 常量类
  *
- * @author liying22923
+ * @author shangang_luo
  */
 
 public class Constants {

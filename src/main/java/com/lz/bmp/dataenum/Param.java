@@ -7,9 +7,15 @@ package com.lz.bmp.dataenum;
 
 public enum Param {
 
-    DELETEPARAM("deleteParam"),
+    DELETE_PARAM("deleteParam"),
+
+    ADD_PARAM("addParam"),
+
+    UPDATE_PARAM("updateParam"),
 
     CODE_LIST("userTemplateCodeList"),
+
+    TAB_KEY("tabkey")
     ;
 
     private final String param;
