@@ -94,4 +94,14 @@ public interface UserTemplateCheckService {
      * @return
      */
     PlainResult<Map<String, Map<String, String>>> widgetValueToLabelMap(Map<String, JSONObject> widgetsMap);
+
+    /**
+     * 数据库字段到值的映射，需要转换为前端识别的类型
+     * “userName”: “超级站”，需要转化为“input_userName”: “用户名”
+     *
+     * @param basicValue
+     * @param jsonValue
+     * @return
+     */
+    PlainResult<Map<String, String>> getPageBasicValue(Map<String, String> basicValue, String jsonValue);
 }

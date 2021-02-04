@@ -283,8 +283,4 @@ public class UserDaoImpl implements UserDao {
         return baseResult;
     }
 
-    @Override
-    public ListResult<Map<String, String>> getExtendInfoList(UserQueryExtendInfoParam queryParam, User user, UserTemplate userTemplate) {
-
-    }
 }

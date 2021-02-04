@@ -87,13 +87,4 @@ public interface UserDao {
      */
     BaseResult deleteExtendTabInfo(UserDeleteExtendTabInfoParam deleteParam, User user, UserTemplate userTemplate);
 
-    /**
-     * 查询扩展属性信息
-     *
-     * @param queryParam
-     * @return
-     */
-    ListResult<Map<String, String>> getExtendInfoList(UserQueryExtendInfoParam queryParam, User user, UserTemplate userTemplate);
-
-
 }

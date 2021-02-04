@@ -28,12 +28,12 @@ public class SelectNoneTreeProps {
     /**
      * 数据源类型
      */
-    private Integer sourceType;
+    private Integer userType;
 
     /**
      * 数据源名称
      */
-    private String sourceName;
+    private String userName;
 
     /**
      * 是否需要搜索功能
@@ -69,28 +69,20 @@ public class SelectNoneTreeProps {
         this.placeholder = placeholder;
     }
 
-    public Integer getSourceType() {
-        return sourceType;
+    public Integer getUserType() {
+        return userType;
     }
 
-    public void setSourceType(Integer sourceType) {
-        this.sourceType = sourceType;
+    public void setUserType(Integer userType) {
+        this.userType = userType;
     }
 
-    public String getSourceName() {
-        return sourceName;
+    public String getUserName() {
+        return userName;
     }
 
-    public void setSourceName(String sourceName) {
-        this.sourceName = sourceName;
-    }
-
-    public List<SelectNoneTreeOption> getOptions() {
-        return options;
-    }
-
-    public void setOptions(List<SelectNoneTreeOption> options) {
-        this.options = options;
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 
     public Boolean getFilterable() {
@@ -101,14 +93,22 @@ public class SelectNoneTreeProps {
         isFilterable = filterable;
     }
 
+    public List<SelectNoneTreeOption> getOptions() {
+        return options;
+    }
+
+    public void setOptions(List<SelectNoneTreeOption> options) {
+        this.options = options;
+    }
+
     @Override
     public String toString() {
         return "SelectNoneTreeProps{" +
                 "label='" + label + '\'' +
                 ", required=" + required +
                 ", placeholder='" + placeholder + '\'' +
-                ", sourceType=" + sourceType +
-                ", sourceName='" + sourceName + '\'' +
+                ", userType=" + userType +
+                ", userName='" + userName + '\'' +
                 ", isFilterable=" + isFilterable +
                 ", options=" + options +
                 '}';

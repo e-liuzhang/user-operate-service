@@ -2,9 +2,11 @@ package com.lz.bmp.service;
 
 import com.fpi.simple.result.BaseResult;
 import com.fpi.simple.result.ListResult;
+import com.fpi.simple.result.PlainResult;
 import com.lz.bmp.entity.user.User;
 import com.lz.bmp.entity.userTemplate.UserTemplate;
 import com.lz.bmp.param.user.*;
+import com.lz.bmp.vo.UserContentVo;
 
 import java.util.Map;
 
@@ -90,11 +92,12 @@ public interface UserService {
     BaseResult deleteExtendTabInfo(UserDeleteExtendTabInfoParam deleteParam, User user, UserTemplate userTemplate);
 
     /**
-     * 查询扩展属性信息
+     * 获取用户
      *
-     * @param queryParam
+     * @param user
+     * @param userTemplate
      * @return
      */
-    ListResult<Map<String, String>> getExtendInfoList(UserQueryExtendInfoParam queryParam, User user, UserTemplate userTemplate);
+    PlainResult<UserContentVo> getUser(User user, UserTemplate userTemplate);
 
 }

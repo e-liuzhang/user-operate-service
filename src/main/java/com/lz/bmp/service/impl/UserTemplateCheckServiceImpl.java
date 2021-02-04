@@ -228,7 +228,7 @@ public class UserTemplateCheckServiceImpl implements UserTemplateCheckService {
                             label = props.getLabel();
                             return baseResult.setError(CommonErrorCode.DATA_NOT_MATCH_JSON, label);
                         }
-                        if (WidgetSourceType.PAGE_DEFINED.getWidgetSourceType().equals(props.getSourceType())) {
+                        if (WidgetSourceType.PAGE_DEFINED.getWidgetSourceType().equals(props.getUserType())) {
                             List<SelectNoneTreeOption> options = props.getOptions();
                             List<String> optionValue = new ArrayList<>();
                             for (SelectNoneTreeOption option : options) {
@@ -238,9 +238,9 @@ public class UserTemplateCheckServiceImpl implements UserTemplateCheckService {
                                 label = props.getLabel();
                                 return baseResult.setError(CommonErrorCode.WIDGET_VALUE_INVALID, label);
                             }
-                        } else if (WidgetSourceType.SYSTEM_DEFINED.getWidgetSourceType().equals(props.getSourceType())) {
+                        } else if (WidgetSourceType.SYSTEM_DEFINED.getWidgetSourceType().equals(props.getUserType())) {
                             //todo 从数据源中进行筛选
-                            if (StringUtils.isEmpty(props.getSourceName())) {
+                            if (StringUtils.isEmpty(props.getUserName())) {
                                 return baseResult.setError(CommonErrorCode.DATASOURCE_IS_ILLEGAL);
                             }
                         }
@@ -656,233 +656,293 @@ public class UserTemplateCheckServiceImpl implements UserTemplateCheckService {
     public PlainResult<Map<String, Map<String, String>>> widgetValueToLabelMap(Map<String, JSONObject> widgetsMap) {
         PlainResult<Map<String, Map<String, String>>> plainResult = new PlainResult<>();
         Map<String, Map<String, String>> result = new HashMap<>();
-//
-//        if (CollectionUtils.isEmpty(widgetsMap)) {
-//            plainResult.setData(result);
-//            return plainResult;
-//        }
-//
-//        Set<Map.Entry<String, JSONObject>> widgetsMapEntrySet = widgetsMap.entrySet();
-//
-//        for (Map.Entry<String, JSONObject> item : widgetsMapEntrySet) {
-//            String widgetName = item.getKey().split("_")[0];
-//            Object widgetClass = WIDGET_NAME_TO_WIDGET_CLASS.get(widgetName);
-//            if (widgetClass == null) {
-//                return plainResult.setError(CommonErrorCode.WIDGET_NAME_IS_ILLEGAL, widgetName);
-//            }
-//            if (widgetClass instanceof RadioWidget) {
-//                RadioWidget widget = JSON.parseObject(String.valueOf(item.getValue()), RadioWidget.class);
-//
-//                RadioProps props = widget.getProps();
-//                if (props == null) {
-//                    continue;
-//                }
-//
-//                List<RadioOption> options = props.getOptions();
-//                if (CollectionUtils.isEmpty(options)) {
-//                    continue;
-//                }
-//
-//                Map<String, String> innerResult = new HashMap<>();
-//                for (RadioOption innerOption : options) {
-//                    innerResult.put(innerOption.getValue(), innerOption.getLabel());
-//                }
-//                result.put(item.getKey(), innerResult);
-//
-//            } else if (widgetClass instanceof CheckboxWidget) {
-//                CheckboxWidget widget = JSON.parseObject(String.valueOf(item.getValue()), CheckboxWidget.class);
-//
-//                CheckboxProps props = widget.getProps();
-//                if (props == null) {
-//                    continue;
-//                }
-//                List<CheckboxOption> options = props.getOptions();
-//                if (CollectionUtils.isEmpty(options)) {
-//                    continue;
-//                }
-//
-//                Map<String, String> innerResult = new HashMap<>();
-//                for (CheckboxOption innerOption : options) {
-//                    innerResult.put(innerOption.getValue(), innerOption.getLabel());
-//                }
-//                result.put(item.getKey(), innerResult);
-//            } else if (widgetClass instanceof SelectNoneTreeWidget) {
-//                SelectNoneTreeWidget widget = JSON.parseObject(String.valueOf(item.getValue()), SelectNoneTreeWidget.class);
-//
-//                SelectNoneTreeProps props = widget.getProps();
-//                if (props == null) {
-//                    continue;
-//                }
-//
-//                if (WidgetSourceType.PAGE_DEFINED.getWidgetSourceType().equals(props.getSourceType())) {
-//                    List<SelectNoneTreeOption> options = props.getOptions();
-//                    if (CollectionUtils.isEmpty(options)) {
-//                        continue;
-//                    }
-//
-//                    Map<String, String> innerResult = new HashMap<>();
-//                    for (SelectNoneTreeOption innerOption : options) {
-//                        innerResult.put(innerOption.getValue(), innerOption.getLabel());
-//                    }
-//                    result.put(item.getKey(), innerResult);
-//
-//                } else if (WidgetSourceType.SYSTEM_DEFINED.getWidgetSourceType().equals(props.getSourceType())) {
-//                    //todo 从数据源中进行筛选
-//                    String sourceName = props.getSourceName();
-//
-//                    DataSourceGetDataParam getParam = new DataSourceGetDataParam();
-//                    List<String> dataSourceCodes = new ArrayList<>();
-//                    dataSourceCodes.add(sourceName);
-//                    getParam.setDataSourceCodes(dataSourceCodes);
-//
-//                    PlainResult<Map<String, Object>> dataSourcePlainResult = dataSourceService.getData(getParam);
-//
-//                    if (!dataSourcePlainResult.isSuccess()) {
-//                        plainResult.setCode(dataSourcePlainResult.getCode());
-//                        plainResult.setMessage(dataSourcePlainResult.getMessage());
-//                        plainResult.setSuccess(false);
-//                        return plainResult;
-//                    }
-//
-//                    Map<String, Object> dataSource = dataSourcePlainResult.getData();
-//
-//                    if (dataSource.get(sourceName) == null) {
-//                        plainResult.setError(PollutionSourceErrorCode.DATA_SOURCE_QUERY_FAILED_ERROR, sourceName);
-//                        return plainResult;
-//                    }
-//
-//                    try {
-//                        List<Map<String, String>> dataList = (List<Map<String, String>>) dataSource.get(sourceName);
-//                        if (CollectionUtils.isEmpty(dataList)) {
-//                            continue;
-//                        }
-//
-//                        Map<String, String> innerResult = new HashMap<>();
-//                        for (Map<String, String> innerOption : dataList) {
-//                            innerResult.put(innerOption.get(WidgetOptionType.VALUE.getWidgetOptionTypeName()),
-//                                    innerOption.get(WidgetOptionType.LABEL.getWidgetOptionTypeName()));
-//                        }
-//                        result.put(item.getKey(), innerResult);
-//                    } catch (Exception e) {
-//                        plainResult.setError(PollutionSourceErrorCode.DATA_TRANSFORM_ERROR, sourceName);
-//                        return plainResult;
-//                    }
-//                }
-//            } else if (widgetClass instanceof SelectTreeWidget) {
-//                //前端单选树结构，用的是id和label
-//                SelectTreeWidget widget = JSON.parseObject(String.valueOf(item.getValue()), SelectTreeWidget.class);
-//
-//                SelectTreeProps props = widget.getProps();
-//                if (props == null) {
-//                    continue;
-//                }
-//                String sourceName = props.getSourceName();
-//
-//                DataSourceGetDataParam getParam = new DataSourceGetDataParam();
-//                List<String> dataSourceCodes = new ArrayList<>();
-//                dataSourceCodes.add(sourceName);
-//                getParam.setDataSourceCodes(dataSourceCodes);
-//
-//                PlainResult<Map<String, Object>> dataSourcePlainResult = dataSourceService.getData(getParam);
-//
-//                if (!dataSourcePlainResult.isSuccess()) {
-//                    plainResult.setCode(dataSourcePlainResult.getCode());
-//                    plainResult.setMessage(dataSourcePlainResult.getMessage());
-//                    plainResult.setSuccess(false);
-//                    return plainResult;
-//                }
-//
-//                Map<String, Object> dataSource = dataSourcePlainResult.getData();
-//
-//                if (dataSource.get(sourceName) == null) {
-//                    plainResult.setError(PollutionSourceErrorCode.DATA_SOURCE_QUERY_FAILED_ERROR, sourceName);
-//                    return plainResult;
-//                }
-//
-//                try {
-//                    JSONArray data = (JSONArray) dataSource.get(sourceName);
-//                    if (data == null) {
-//                        continue;
-//                    }
-//
-//                    Map<String, String> idToLabelMap = new HashMap<>();
-//
-//                    data.forEach(itemObject -> {
-//                        idToLabelMap.putAll(getTreeIdToLabelMap(JSON.parseObject(JSON.toJSONString(itemObject))));
-//                    });
-//
-//                    result.put(item.getKey(), idToLabelMap);
-//                } catch (Exception e) {
-//                    plainResult.setError(PollutionSourceErrorCode.DATA_TRANSFORM_ERROR, sourceName);
-//                    return plainResult;
-//                }
-//
-//            } else if (widgetClass instanceof SelectMultiWidget) {
-//
-//                SelectMultiWidget widget = JSON.parseObject(String.valueOf(item.getValue()), SelectMultiWidget.class);
-//
-//                SelectMultiProps props = widget.getProps();
-//                if (props == null) {
-//                    continue;
-//                }
-//
-//                if (WidgetSourceType.PAGE_DEFINED.getWidgetSourceType().equals(props.getSourceType())) {
-//                    List<SelectMultiOption> options = props.getOptions();
-//                    if (CollectionUtils.isEmpty(options)) {
-//                        continue;
-//                    }
-//
-//                    Map<String, String> innerResult = new HashMap<>();
-//                    for (SelectMultiOption innerOption : options) {
-//                        innerResult.put(innerOption.getValue(), innerOption.getLabel());
-//                    }
-//                    result.put(item.getKey(), innerResult);
-//
-//                } else if (WidgetSourceType.SYSTEM_DEFINED.getWidgetSourceType().equals(props.getSourceType())) {
-//                    //todo 从数据源中进行筛选
-//                    String sourceName = props.getSourceName();
-//
-//                    DataSourceGetDataParam getParam = new DataSourceGetDataParam();
-//                    List<String> dataSourceCodes = new ArrayList<>();
-//                    dataSourceCodes.add(sourceName);
-//                    getParam.setDataSourceCodes(dataSourceCodes);
-//
-//                    PlainResult<Map<String, Object>> dataSourcePlainResult = dataSourceService.getData(getParam);
-//
-//                    if (!dataSourcePlainResult.isSuccess()) {
-//                        plainResult.setCode(dataSourcePlainResult.getCode());
-//                        plainResult.setMessage(dataSourcePlainResult.getMessage());
-//                        plainResult.setSuccess(false);
-//                        return plainResult;
-//                    }
-//
-//                    Map<String, Object> dataSource = dataSourcePlainResult.getData();
-//
-//                    if (dataSource.get(sourceName) == null) {
-//                        plainResult.setError(PollutionSourceErrorCode.DATA_SOURCE_QUERY_FAILED_ERROR, sourceName);
-//                        return plainResult;
-//                    }
-//
-//                    try {
-//                        List<Map<String, String>> dataList = (List<Map<String, String>>) dataSource.get(sourceName);
-//                        if (CollectionUtils.isEmpty(dataList)) {
-//                            continue;
-//                        }
-//
-//                        Map<String, String> innerResult = new HashMap<>();
-//                        for (Map<String, String> innerOption : dataList) {
-//                            innerResult.put(innerOption.get(WidgetOptionType.VALUE.getWidgetOptionTypeName()),
-//                                    innerOption.get(WidgetOptionType.LABEL.getWidgetOptionTypeName()));
-//                        }
-//                        result.put(item.getKey(), innerResult);
-//                    } catch (Exception e) {
-//                        plainResult.setError(PollutionSourceErrorCode.DATA_TRANSFORM_ERROR, sourceName);
-//                        return plainResult;
-//                    }
-//                }
-//            }
-//        }
+
+        if (CollectionUtils.isEmpty(widgetsMap)) {
+            plainResult.setData(result);
+            return plainResult;
+        }
+
+        Set<Map.Entry<String, JSONObject>> widgetsMapEntrySet = widgetsMap.entrySet();
+
+        for (Map.Entry<String, JSONObject> item : widgetsMapEntrySet) {
+            String widgetName = item.getKey().split("_")[0];
+            Object widgetClass = WIDGET_NAME_TO_WIDGET_CLASS.get(widgetName);
+            if (widgetClass == null) {
+                return plainResult.setError(CommonErrorCode.WIDGET_NAME_IS_ILLEGAL, widgetName);
+            }
+            if (widgetClass instanceof RadioWidget) {
+                RadioWidget widget = JSON.parseObject(String.valueOf(item.getValue()), RadioWidget.class);
+
+                RadioProps props = widget.getProps();
+                if (props == null) {
+                    continue;
+                }
+
+                List<RadioOption> options = props.getOptions();
+                if (CollectionUtils.isEmpty(options)) {
+                    continue;
+                }
+
+                Map<String, String> innerResult = new HashMap<>();
+                for (RadioOption innerOption : options) {
+                    innerResult.put(innerOption.getValue(), innerOption.getLabel());
+                }
+                result.put(item.getKey(), innerResult);
+
+            } else if (widgetClass instanceof CheckboxWidget) {
+                CheckboxWidget widget = JSON.parseObject(String.valueOf(item.getValue()), CheckboxWidget.class);
+
+                CheckboxProps props = widget.getProps();
+                if (props == null) {
+                    continue;
+                }
+                List<CheckboxOption> options = props.getOptions();
+                if (CollectionUtils.isEmpty(options)) {
+                    continue;
+                }
+
+                Map<String, String> innerResult = new HashMap<>();
+                for (CheckboxOption innerOption : options) {
+                    innerResult.put(innerOption.getValue(), innerOption.getLabel());
+                }
+                result.put(item.getKey(), innerResult);
+            } else if (widgetClass instanceof SelectNoneTreeWidget) {
+                SelectNoneTreeWidget widget = JSON.parseObject(String.valueOf(item.getValue()), SelectNoneTreeWidget.class);
+
+                SelectNoneTreeProps props = widget.getProps();
+                if (props == null) {
+                    continue;
+                }
+
+                if (WidgetSourceType.PAGE_DEFINED.getWidgetSourceType().equals(props.getUserType())) {
+                    List<SelectNoneTreeOption> options = props.getOptions();
+                    if (CollectionUtils.isEmpty(options)) {
+                        continue;
+                    }
+
+                    Map<String, String> innerResult = new HashMap<>();
+                    for (SelectNoneTreeOption innerOption : options) {
+                        innerResult.put(innerOption.getValue(), innerOption.getLabel());
+                    }
+                    result.put(item.getKey(), innerResult);
+
+                } else if (WidgetSourceType.SYSTEM_DEFINED.getWidgetSourceType().equals(props.getUserType())) {
+                    //todo 从数据源中进行筛选
+                    String userName = props.getUserName();
+
+                    DataSourceGetDataParam getParam = new DataSourceGetDataParam();
+                    List<String> dataSourceCodes = new ArrayList<>();
+                    dataSourceCodes.add(userName);
+                    getParam.setDataSourceCodes(dataSourceCodes);
+
+                    PlainResult<Map<String, Object>> dataSourcePlainResult = dataSourceService.getData(getParam);
+
+                    if (!dataSourcePlainResult.isSuccess()) {
+                        plainResult.setCode(dataSourcePlainResult.getCode());
+                        plainResult.setMessage(dataSourcePlainResult.getMessage());
+                        plainResult.setSuccess(false);
+                        return plainResult;
+                    }
+
+                    Map<String, Object> dataSource = dataSourcePlainResult.getData();
+
+                    if (dataSource.get(userName) == null) {
+                        plainResult.setError(CommonErrorCode.DATA_SOURCE_QUERY_FAILED_ERROR, userName);
+                        return plainResult;
+                    }
+
+                    try {
+                        List<Map<String, String>> dataList = (List<Map<String, String>>) dataSource.get(userName);
+                        if (CollectionUtils.isEmpty(dataList)) {
+                            continue;
+                        }
+
+                        Map<String, String> innerResult = new HashMap<>();
+                        for (Map<String, String> innerOption : dataList) {
+                            innerResult.put(innerOption.get(WidgetOptionType.VALUE.getWidgetOptionTypeName()),
+                                    innerOption.get(WidgetOptionType.LABEL.getWidgetOptionTypeName()));
+                        }
+                        result.put(item.getKey(), innerResult);
+                    } catch (Exception e) {
+                        plainResult.setError(CommonErrorCode.DATA_TRANSFORM_ERROR, userName);
+                        return plainResult;
+                    }
+                }
+            } else if (widgetClass instanceof SelectTreeWidget) {
+                //前端单选树结构，用的是id和label
+                SelectTreeWidget widget = JSON.parseObject(String.valueOf(item.getValue()), SelectTreeWidget.class);
+
+                SelectTreeProps props = widget.getProps();
+                if (props == null) {
+                    continue;
+                }
+                String sourceName = props.getSourceName();
+
+                DataSourceGetDataParam getParam = new DataSourceGetDataParam();
+                List<String> dataSourceCodes = new ArrayList<>();
+                dataSourceCodes.add(sourceName);
+                getParam.setDataSourceCodes(dataSourceCodes);
+
+                PlainResult<Map<String, Object>> dataSourcePlainResult = dataSourceService.getData(getParam);
+
+                if (!dataSourcePlainResult.isSuccess()) {
+                    plainResult.setCode(dataSourcePlainResult.getCode());
+                    plainResult.setMessage(dataSourcePlainResult.getMessage());
+                    plainResult.setSuccess(false);
+                    return plainResult;
+                }
+
+                Map<String, Object> dataSource = dataSourcePlainResult.getData();
+
+                if (dataSource.get(sourceName) == null) {
+                    plainResult.setError(CommonErrorCode.DATA_SOURCE_QUERY_FAILED_ERROR, sourceName);
+                    return plainResult;
+                }
+
+                try {
+                    JSONArray data = (JSONArray) dataSource.get(sourceName);
+                    if (data == null) {
+                        continue;
+                    }
+
+                    Map<String, String> idToLabelMap = new HashMap<>();
+
+                    data.forEach(itemObject -> {
+                        idToLabelMap.putAll(getTreeIdToLabelMap(JSON.parseObject(JSON.toJSONString(itemObject))));
+                    });
+
+                    result.put(item.getKey(), idToLabelMap);
+                } catch (Exception e) {
+                    plainResult.setError(CommonErrorCode.DATA_TRANSFORM_ERROR, sourceName);
+                    return plainResult;
+                }
+
+            } else if (widgetClass instanceof SelectMultiWidget) {
+
+                SelectMultiWidget widget = JSON.parseObject(String.valueOf(item.getValue()), SelectMultiWidget.class);
+
+                SelectMultiProps props = widget.getProps();
+                if (props == null) {
+                    continue;
+                }
+
+                if (WidgetSourceType.PAGE_DEFINED.getWidgetSourceType().equals(props.getSourceType())) {
+                    List<SelectMultiOption> options = props.getOptions();
+                    if (CollectionUtils.isEmpty(options)) {
+                        continue;
+                    }
+
+                    Map<String, String> innerResult = new HashMap<>();
+                    for (SelectMultiOption innerOption : options) {
+                        innerResult.put(innerOption.getValue(), innerOption.getLabel());
+                    }
+                    result.put(item.getKey(), innerResult);
+
+                } else if (WidgetSourceType.SYSTEM_DEFINED.getWidgetSourceType().equals(props.getSourceType())) {
+                    //todo 从数据源中进行筛选
+                    String sourceName = props.getSourceName();
+
+                    DataSourceGetDataParam getParam = new DataSourceGetDataParam();
+                    List<String> dataSourceCodes = new ArrayList<>();
+                    dataSourceCodes.add(sourceName);
+                    getParam.setDataSourceCodes(dataSourceCodes);
+
+                    PlainResult<Map<String, Object>> dataSourcePlainResult = dataSourceService.getData(getParam);
+
+                    if (!dataSourcePlainResult.isSuccess()) {
+                        plainResult.setCode(dataSourcePlainResult.getCode());
+                        plainResult.setMessage(dataSourcePlainResult.getMessage());
+                        plainResult.setSuccess(false);
+                        return plainResult;
+                    }
+
+                    Map<String, Object> dataSource = dataSourcePlainResult.getData();
+
+                    if (dataSource.get(sourceName) == null) {
+                        plainResult.setError(CommonErrorCode.DATA_SOURCE_QUERY_FAILED_ERROR, sourceName);
+                        return plainResult;
+                    }
+
+                    try {
+                        List<Map<String, String>> dataList = (List<Map<String, String>>) dataSource.get(sourceName);
+                        if (CollectionUtils.isEmpty(dataList)) {
+                            continue;
+                        }
+
+                        Map<String, String> innerResult = new HashMap<>();
+                        for (Map<String, String> innerOption : dataList) {
+                            innerResult.put(innerOption.get(WidgetOptionType.VALUE.getWidgetOptionTypeName()),
+                                    innerOption.get(WidgetOptionType.LABEL.getWidgetOptionTypeName()));
+                        }
+                        result.put(item.getKey(), innerResult);
+                    } catch (Exception e) {
+                        plainResult.setError(CommonErrorCode.DATA_TRANSFORM_ERROR, sourceName);
+                        return plainResult;
+                    }
+                }
+            }
+        }
         plainResult.setData(result);
         return plainResult;
+    }
+
+    @Override
+    public PlainResult<Map<String, String>> getPageBasicValue(Map<String, String> basicValue, String jsonValue) {
+        PlainResult<Map<String, String>> plainResult = new PlainResult<>();
+        Map<String, String> result = new HashMap<>();
+
+        Map<String, JSONObject> widgetsMap = new HashMap<>();
+
+        try {
+            widgetsMap = getWidgetsMap(jsonValue);
+        } catch (Exception e) {
+            return plainResult.setError(CommonErrorCode.JSON_DATA_ERROR, e.toString());
+        }
+
+        if (CollectionUtils.isEmpty(widgetsMap)) {
+            return plainResult.setError(CommonErrorCode.JSON_DATA_IS_ILLEGAL);
+        }
+
+        if (CollectionUtils.isEmpty(basicValue) || CollectionUtils.isEmpty(widgetsMap)) {
+            plainResult.setData(result);
+            return plainResult;
+        }
+
+        Set<String> widgetsMapKeySet = widgetsMap.keySet();
+
+        Set<Map.Entry<String, String>> basicValueEntry = basicValue.entrySet();
+
+        for (Map.Entry<String, String> item : basicValueEntry) {
+            for (String str : widgetsMapKeySet) {
+                String temp = str.split("_")[1];
+                if (temp.equals(item.getKey())) {
+                    result.put(str, item.getValue());
+                }
+            }
+        }
+
+        plainResult.setData(result);
+        return plainResult;
+    }
+
+    /**
+     * 收集标准树结构中id到label的映射
+     *
+     * @param data
+     * @return
+     */
+    private Map<String, String> getTreeIdToLabelMap(JSONObject data) {
+        Map<String, String> result = new HashMap<>();
+        if (data.containsKey(WidgetOptionType.CHILDREN.getWidgetOptionTypeName())) {
+            JSONArray children = (JSONArray) data.get(WidgetOptionType.CHILDREN.getWidgetOptionTypeName());
+            for (Object child : children) {
+                JSONObject jsonObjectChild = (JSONObject) child;
+                result.putAll(getTreeIdToLabelMap(jsonObjectChild));
+            }
+        }
+
+        result.put((String) data.get(WidgetOptionType.CODE.getWidgetOptionTypeName()),
+                (String) data.get(WidgetOptionType.LABEL.getWidgetOptionTypeName()));
+        return result;
     }
 }

@@ -21,51 +21,51 @@ public interface DataSourceService {
      * @return
      */
     PlainResult<Map<String, Object>> getData(DataSourceGetDataParam dataSourceGetData);
-
-
-    /**
-     * 增加数据源
-     * @param dataSourceAddParam
-     * @return
-     */
-    BaseResult addDataSource(DataSourceAddParam dataSourceAddParam);
-
-
-    /**
-     * 伪删除数据源
-     * @param dataSourceDeleteParam
-     * @return
-     */
-    BaseResult deleteDataSource(DataSourceDeleteParam dataSourceDeleteParam);
-
-    /**
-     * 更新数据源
-     * @param dataSourceUpdateParam
-     * @return
-     */
-    BaseResult updateDataSource(DataSourceUpdateParam dataSourceUpdateParam);
-
-
-    /**
-     * 计算DataSource
-     * @param dataSourceQueryParam
-     * @return
-     */
-    PlainResult<Long> countDataSource(DataSourceQueryParam dataSourceQueryParam);
-
-
-    /**
-     * 分页查询
-     * @param dataSourceQueryParam
-     * @return
-     */
-    ListResult<DataSource> selectPageOfDataSource(DataSourceQueryParam dataSourceQueryParam);
-
-
-    /**
-     * 校验传入的数据源是否和配置的符合
-     * @param dataSource
-     * @return
-     */
-    PlainResult<Object> checkDataSource(DataSource dataSource);
+//
+//
+//    /**
+//     * 增加数据源
+//     * @param dataSourceAddParam
+//     * @return
+//     */
+//    BaseResult addDataSource(DataSourceAddParam dataSourceAddParam);
+//
+//
+//    /**
+//     * 伪删除数据源
+//     * @param dataSourceDeleteParam
+//     * @return
+//     */
+//    BaseResult deleteDataSource(DataSourceDeleteParam dataSourceDeleteParam);
+//
+//    /**
+//     * 更新数据源
+//     * @param dataSourceUpdateParam
+//     * @return
+//     */
+//    BaseResult updateDataSource(DataSourceUpdateParam dataSourceUpdateParam);
+//
+//
+//    /**
+//     * 计算DataSource
+//     * @param dataSourceQueryParam
+//     * @return
+//     */
+//    PlainResult<Long> countDataSource(DataSourceQueryParam dataSourceQueryParam);
+//
+//
+//    /**
+//     * 分页查询
+//     * @param dataSourceQueryParam
+//     * @return
+//     */
+//    ListResult<DataSource> selectPageOfDataSource(DataSourceQueryParam dataSourceQueryParam);
+//
+//
+//    /**
+//     * 校验传入的数据源是否和配置的符合
+//     * @param dataSource
+//     * @return
+//     */
+//    PlainResult<Object> checkDataSource(DataSource dataSource);
 }

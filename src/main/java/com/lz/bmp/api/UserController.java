@@ -16,6 +16,7 @@ import com.lz.bmp.service.UserTemplateCheckService;
 import com.lz.bmp.service.UserTemplateService;
 import com.lz.bmp.utils.CommonUtils;
 import com.lz.bmp.vo.UserApiVo;
+import com.lz.bmp.vo.UserContentVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -803,4 +804,63 @@ public class UserController {
 
         return listResult;
     }
+
+    /**
+     * 获取用户数据
+     *
+     * @return
+     */
+    @PostMapping("getUser")
+    public Object getUserData(@RequestBody UserQueryByUuidParam queryParam) {
+        PlainResult<UserContentVo> plainResult = new PlainResult<>();
+
+        if (queryParam == null) {
+            return plainResult.setError(CommonErrorCode.PARAM_ERROR, Param.QUERY_PARAM.getParam());
+        }
+        User user = null;
+        if (!StringUtils.isEmpty(queryParam.getUserUuid())) {
+            UserQueryByUuidListParam queryUserParam = new UserQueryByUuidListParam();
+            List<String> userUuidList = new ArrayList<>();
+            userUuidList.add(queryParam.getUserUuid());
+            queryUserParam.setUserUuidList(userUuidList);
+            ListResult<User> userListResult = userService.findUserByUuidList(queryUserParam);
+            if (!userListResult.isSuccess()) {
+                return plainResult.setError(userListResult.getCode(), userListResult.getMessage());
+            }
+            List<User> userList = userListResult.getData();
+            if (userList.size() > Number.ONE.getNumber()) {
+                return plainResult.setError(CommonErrorCode.HAS_EXIT, UserField.USER_UUID.getField(), queryParam.getUserUuid());
+            }
+            if (userList.size() < Number.ONE.getNumber()) {
+                return plainResult.setError(CommonErrorCode.NOT_EXIT, UserField.USER_UUID.getField(), queryParam.getUserUuid());
+            }
+            user = userList.get(Number.ZERO.getNumber());
+
+            //校验sourceTemplateCode是否存在且唯一
+            String userTemplateCode = user.getUserCommonInfo().getUserTemplateCode();
+            UserTemplateQueryByCodeParam queryTemplateParam = new UserTemplateQueryByCodeParam();
+            List<String> userTemplateCodeList = new ArrayList<>();
+            userTemplateCodeList.add(userTemplateCode);
+            queryTemplateParam.setUserTemplateCodeList(userTemplateCodeList);
+            ListResult<UserTemplate> userTemplateListResult = userTemplateService.findUserTemplate(queryTemplateParam);
+
+            if (!userTemplateListResult.isSuccess()) {
+                return plainResult.setError(userTemplateListResult.getCode(), userTemplateListResult.getMessage());
+            }
+
+            List<UserTemplate> userTemplateList = userTemplateListResult.getData();
+            if (CollectionUtils.isEmpty(userTemplateList)) {
+                return plainResult.setError(CommonErrorCode.NOT_EXIT, UserTemplateField.USER_TEMPLATE_CODE.getField(), userTemplateCode);
+            }
+
+            if (userTemplateList.size() > Number.ONE.getNumber()) {
+                return plainResult.setError(CommonErrorCode.HAS_EXIT, UserTemplateField.USER_TEMPLATE_CODE.getField(), userTemplateCode);
+            }
+
+            UserTemplate userTemplate = userTemplateList.get(Number.ZERO.getNumber());
+            return userService.getUser(user, userTemplate);
+
+        }
+        return plainResult;
+}
 }

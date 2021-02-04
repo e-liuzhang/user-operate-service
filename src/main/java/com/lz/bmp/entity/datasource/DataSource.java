@@ -1,6 +1,7 @@
 package com.lz.bmp.entity.datasource;
 
-import com.fpi.bmp.pollution.entity.BaseEntity;
+
+import com.lz.bmp.entity.BaseEntity;
 import org.springframework.data.annotation.Id;
 
 /**

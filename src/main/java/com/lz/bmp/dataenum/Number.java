@@ -11,6 +11,8 @@ public enum Number {
 
     ONE(1),
 
+    TWO(2),
+
     THIRTY_TWO(32),
     ;
 

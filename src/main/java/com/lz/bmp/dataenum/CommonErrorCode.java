@@ -89,6 +89,36 @@ public enum CommonErrorCode implements IErrorCode {
      */
     JSON_WIDGET_NOT_FOUND("业务结构对应控件不存在， %s"),
 
+    /**
+     * 数据源查询失败
+     */
+    DATA_SOURCE_QUERY_FAILED_ERROR("数据源%s查询失败"),
+
+    DATA_TRANSFORM_ERROR("数据转换异常，%s"),
+
+    /**
+     * 数据源失败
+     */
+    DATA_SOURCE_MULTIPLE_DATA_ERROR("数据源%s存在多条数据"),
+
+    /**
+     * 数据源失败
+     */
+    DATA_SOURCE_DATA_NOT_FOUND("数据源%s不存在"),
+
+    /**
+     * 数据源失败
+     */
+    DATA_SOURCE_CATEGORY_IS_ILLEGAL("数据源%s值非法"),
+
+    DATA_SOURCE_DATA_PARAM_PARSER_ERROR("数据源%s参数解析异常"),
+
+    DATA_SOURCE_ACHIEVE_DATA_FAILED("数据源%s获取数据源失败"),
+
+    SOURCE_PAGE_ATTR_NOT_FOUND("分页对应属性未找到，%s"),
+
+    DATASOURCE_PARAMETER_IS_NOT_LEGAL("参数配置不合法"),
+
 
     ;
 
